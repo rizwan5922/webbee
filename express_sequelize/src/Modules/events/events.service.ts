@@ -1,6 +1,6 @@
 import Event from './entities/event.entity';
-
-
+import Workshop from './entities/workshop.entity';
+import Op from 'sequelize';
 export class EventsService {
 
   async getWarmupEvents() {
@@ -84,8 +84,29 @@ export class EventsService {
     ```
      */
 
-  async getEventsWithWorkshops() {
-    throw new Error('TODO task 1');
+  async getEventsWithWorkshops(): Promise<any[]> {
+    try {
+      const workshops = await Workshop.findAll({
+        attributes: ['id', 'start', 'end', 'eventId', 'name', 'createdAt']
+      });
+      const events = await Event.findAll({
+        attributes: ['id', 'name', 'createdAt']
+      });
+      let resp: IResp[] = [];
+      events.forEach(e => {
+        let temp: IResp;
+        temp = <IResp>(<unknown>e);
+        temp.workshops = workshops.filter(r => r.eventId == e.id);
+        resp.push(temp);
+      })
+      return resp;
+
+    } catch (error) {
+      console.error(error);
+      throw new Error(error);
+    }
+
+
   }
 
   /* TODO: complete getFutureEventWithWorkshops so that it returns events with workshops, that have not yet started
@@ -157,4 +178,10 @@ export class EventsService {
   async getFutureEventWithWorkshops() {
     throw new Error('TODO task 2');
   }
+}
+interface IResp {
+  id: number,
+  'name': string,
+  'createdAt': string,
+  workshops: Workshop[]
 }
